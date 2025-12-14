@@ -4,7 +4,7 @@ import {useForm} from "react-hook-form";
 import {Button} from "@/components/ui/button";
 import InputField from "@/components/forms/InputField";
 import SelectField from "@/components/forms/SelectField";
-import {INVESTMENT_GOALS, PREFERRED_INDUSTRIES, RISK_TOLERANCE_OPTIONS} from "@/lib/constant";
+import {INVESTMENT_GOALS, PREFERRED_INDUSTRIES, RISK_TOLERANCE_OPTIONS} from "@/lib/constants";
 import {CountrySelectField} from "@/components/forms/CountrySelectField";
 import FooterLink from "@/components/forms/FooterLink";
 import {signUpWithEmail} from "@/lib/actions/auth.actions";
@@ -60,7 +60,7 @@ const SignUp = () => {
                 <InputField
                     name="email"
                     label="Email"
-                    placeholder="contact@jsmastery.com"
+                    placeholder="lawrencepro.dev@gmail.com"
                     register={register}
                     error={errors.email}
                     validation={{ required: 'Email name is required', pattern: /^\w+@\w+\.\w+$/, message: 'Email address is required' }}
