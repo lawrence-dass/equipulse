@@ -8,13 +8,13 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "./button"
-import { LogOutIcon, UserIcon } from "lucide-react"
+import { LogOutIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar" 
 
 
-const UserDropdown = () => {
+const UserDropdown = ({user}: {user: { name: string, email: string }}) => {
     const router = useRouter()
     const handleSignOut = async () => {
         try {
@@ -24,11 +24,6 @@ const UserDropdown = () => {
         } catch (error) {
             toast.error('Failed to sign out')
         }
-    }
-    const user = {
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        image: 'https://github.com/shadcn.png',
     }
   return (
     <DropdownMenu>
@@ -40,6 +35,7 @@ const UserDropdown = () => {
             </Avatar>
             <div className='hidden md:flex flex-col items-start'>
                 <span className="text-base font-medium text-gray-400">{user.name}</span>
+                <span className="text-sm text-gray-400">{user.email}</span>
             </div>
             </Button>
         </DropdownMenuTrigger>
