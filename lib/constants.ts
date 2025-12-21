@@ -327,6 +327,8 @@ export const POPULAR_STOCK_SYMBOLS = [
 export const NO_MARKET_NEWS =
     '<p class="mobile-text" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#4b5563;">No market news available today. Please check back tomorrow.</p>';
 
+import { LayoutItem, ResponsiveLayouts } from 'react-grid-layout';
+
 export const WATCHLIST_TABLE_HEADER = [
     'Company',
     'Symbol',
@@ -337,3 +339,97 @@ export const WATCHLIST_TABLE_HEADER = [
     'Alert',
     'Action',
 ];
+
+// Dashboard Widget Registry
+
+export type WidgetType = 'market-overview' | 'heatmap' | 'market-data' | 'top-stories';
+
+export interface WidgetConfig {
+    id: string;
+    type: WidgetType;
+    title?: string;
+    scriptURL: string;
+    config: Record<string, unknown>;
+    height: number;
+    className?: string;
+    constraints: {
+        minW: number;
+        minH: number;
+        maxW?: number;
+        maxH?: number;
+    };
+}
+
+export type WidgetLayout = LayoutItem;
+export type Layouts = ResponsiveLayouts;
+
+// Default widget configurations
+export const DASHBOARD_WIDGETS: WidgetConfig[] = [
+    {
+        id: 'market-overview',
+        type: 'market-overview',
+        title: 'Market Overview',
+        scriptURL: 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',
+        config: MARKET_OVERVIEW_WIDGET_CONFIG,
+        height: 505,
+        className: 'custom-chart',
+        constraints: { minW: 3, minH: 10, maxW: 6 },
+    },
+    {
+        id: 'heatmap',
+        type: 'heatmap',
+        title: 'Stock Heatmap',
+        scriptURL: 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js',
+        config: HEATMAP_WIDGET_CONFIG,
+        height: 505,
+        className: 'custom-chart',
+        constraints: { minW: 6, minH: 10, maxW: 12 },
+    },
+    {
+        id: 'market-data',
+        type: 'market-data',
+        scriptURL: 'https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js',
+        config: MARKET_DATA_WIDGET_CONFIG,
+        height: 325,
+        className: 'custom-chart',
+        constraints: { minW: 4, minH: 8, maxW: 12 },
+    },
+    {
+        id: 'top-stories',
+        type: 'top-stories',
+        scriptURL: 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js',
+        config: TOP_STORIES_WIDGET_CONFIG,
+        height: 325,
+        className: 'custom-chart',
+        constraints: { minW: 3, minH: 8, maxW: 6 },
+    },
+];
+
+// Default layouts matching current static layout
+// Grid: 12 columns, row height: 30px
+export const DEFAULT_LAYOUTS: Record<string, LayoutItem[]> = {
+    lg: [
+        { i: 'market-overview', x: 0, y: 0, w: 4, h: 17, minW: 3, minH: 10, maxW: 6 },
+        { i: 'heatmap', x: 4, y: 0, w: 8, h: 17, minW: 6, minH: 10, maxW: 12 },
+        { i: 'market-data', x: 0, y: 17, w: 8, h: 10, minW: 4, minH: 8, maxW: 12 },
+        { i: 'top-stories', x: 8, y: 17, w: 4, h: 10, minW: 3, minH: 8, maxW: 6 },
+    ],
+    md: [
+        { i: 'market-overview', x: 0, y: 0, w: 5, h: 17, minW: 3, minH: 10, maxW: 6 },
+        { i: 'heatmap', x: 5, y: 0, w: 5, h: 17, minW: 6, minH: 10, maxW: 10 },
+        { i: 'market-data', x: 0, y: 17, w: 6, h: 10, minW: 4, minH: 8, maxW: 10 },
+        { i: 'top-stories', x: 6, y: 17, w: 4, h: 10, minW: 3, minH: 8, maxW: 6 },
+    ],
+    sm: [
+        { i: 'market-overview', x: 0, y: 0, w: 3, h: 17, minW: 2, minH: 10, maxW: 6 },
+        { i: 'heatmap', x: 3, y: 0, w: 3, h: 17, minW: 3, minH: 10, maxW: 6 },
+        { i: 'market-data', x: 0, y: 17, w: 4, h: 10, minW: 3, minH: 8, maxW: 6 },
+        { i: 'top-stories', x: 4, y: 17, w: 2, h: 10, minW: 2, minH: 8, maxW: 6 },
+    ],
+    xs: [
+        { i: 'market-overview', x: 0, y: 0, w: 2, h: 17, minW: 2, minH: 10, maxW: 4 },
+        { i: 'heatmap', x: 2, y: 0, w: 2, h: 17, minW: 2, minH: 10, maxW: 4 },
+        { i: 'market-data', x: 0, y: 17, w: 3, h: 10, minW: 2, minH: 8, maxW: 4 },
+        { i: 'top-stories', x: 3, y: 17, w: 1, h: 10, minW: 1, minH: 8, maxW: 4 },
+    ],
+};
