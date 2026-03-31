@@ -406,7 +406,7 @@ export const DASHBOARD_WIDGETS: WidgetConfig[] = [
 ];
 
 // Default layouts matching current static layout
-// Grid: 12 columns, row height: 30px
+// Grid: 12 columns, row height: 18px
 export const DEFAULT_LAYOUTS: Record<string, LayoutItem[]> = {
     lg: [
         { i: 'market-overview', x: 0, y: 0, w: 4, h: 17, minW: 3, minH: 10, maxW: 6 },

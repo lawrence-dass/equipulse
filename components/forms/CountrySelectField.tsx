@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -23,9 +22,9 @@ import { cn } from '@/lib/utils';
 import countryList from 'react-select-country-list';
 
 type CountrySelectProps = {
-    name: string;
+    name: 'country';
     label: string;
-    control: Control<any>;
+    control: Control<SignUpFormData>;
     error?: FieldError;
     required?: boolean;
 };
@@ -63,7 +62,7 @@ const CountrySelect = ({
                     {value ? (
                         <span className='flex items-center gap-2'>
               <span>{getFlagEmoji(value)}</span>
-              <span>{countries.find((c) => c.value === value)?.label}</span>
+              <span>{countries.find((country) => country.value === value)?.label}</span>
             </span>
                     ) : (
                         'Select your country...'
@@ -134,7 +133,10 @@ export const CountrySelectField = ({
                     required: required ? `Please select ${label.toLowerCase()}` : false,
                 }}
                 render={({ field }) => (
-                    <CountrySelect value={field.value} onChange={field.onChange} />
+                    <CountrySelect
+                        value={typeof field.value === 'string' ? field.value : ''}
+                        onChange={field.onChange}
+                    />
                 )}
             />
             {error && <p className='text-sm text-red-500'>{error.message}</p>}
