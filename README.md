@@ -10,7 +10,7 @@ The current application is intentionally simple:
 - public dashboard at `/`
 - stock detail pages at `/stocks/[symbol]`
 
-This README is the current source of truth for the runtime architecture in this repo.
+The main architecture document lives in [ARCHITECTURE.md](/Users/lawrence/Desktop/projects/portfolio_projects/equipulse/ARCHITECTURE.md).
 
 ## Current State
 
@@ -23,7 +23,7 @@ As of `2026-03-31`, the app is operating as a portfolio-style public market dash
 - stock detail pages with multiple TradingView embeds
 - browser-local watchlist storage
 - browser-local dashboard layout persistence
-- Finnhub-backed search and market/news data fetch helpers
+- Finnhub-backed stock search helpers
 
 ### Recent Changes Reflected In This Repo
 
@@ -99,21 +99,15 @@ app/
             └── page.tsx
 ```
 
-### What Is Active vs Present In The Repo
-
-The repo still contains some historical or deferred pieces, but they are not part of the active route tree today.
+### What Is Active In The Repo
 
 | Area | Status | Notes |
 |---|---|---|
 | Public dashboard | Active | Core experience |
 | Stock details page | Active | `/stocks/[symbol]` |
-| Finnhub search/news helpers | Active | Server-side helpers in `lib/actions/finnhub.actions.ts` |
+| Finnhub search helpers | Active | Server-side helpers in `lib/actions/finnhub.actions.ts` |
 | Browser-local watchlist | Active | `components/WatchlistButton.tsx` |
 | Browser-local layout persistence | Active | `lib/hooks/useDashboardLayout.ts` |
-| MongoDB connection helpers | Present but inactive in runtime | Used by `scripts/test-db.mjs` and legacy data model code |
-| Better Auth dependency | Installed but inactive | No auth routes in `app/` |
-| Inngest dependency | Installed but inactive | No active `app/api/inngest/route.ts` |
-| Nodemailer dependency | Installed but inactive | No active email flow in route tree |
 
 ## Request Flow
 
@@ -166,18 +160,10 @@ sequenceDiagram
 
 ### `lib/`
 
-- `lib/actions/finnhub.actions.ts`: server actions/helpers for stock search and market news
+- `lib/actions/finnhub.actions.ts`: server actions/helpers for stock search
 - `lib/constants.ts`: navigation, widget configs, TradingView settings, and dashboard layout defaults
 - `lib/hooks/useDashboardLayout.ts`: browser-local layout persistence
-- `lib/utils.ts`: date/news formatting helpers
-- `lib/utils/dashboardLayout.ts`: localStorage utilities for layouts
-
-### `database/`
-
-- `database/mongoose.ts`: reusable MongoDB connection helper
-- `database/models/watchlist.model.ts`: legacy Mongoose watchlist model
-
-These database files are currently infrastructure leftovers rather than active runtime dependencies for the public dashboard.
+- `lib/utils.ts`: shared className helper
 
 ## State Model
 
@@ -194,8 +180,7 @@ This keeps the public experience fast and removes account friction.
 
 The active runtime uses server-side code mainly for external fetches:
 
-- Finnhub search
-- Finnhub news
+- Finnhub stock search
 - TradingView widget configuration generation
 
 There is no active user session state in the current route tree.
@@ -219,7 +204,6 @@ Finnhub is used for:
 
 - search suggestions
 - stock lookup
-- market news retrieval
 
 The helpers are defined in [lib/actions/finnhub.actions.ts](/Users/lawrence/Desktop/projects/portfolio_projects/equipulse/lib/actions/finnhub.actions.ts).
 
@@ -249,7 +233,6 @@ FINNHUB_API_KEY=
 | `AI_ENABLED` | No | Feature flag for future AI work |
 | `OPENROUTER_API_KEY` | No | Future AI provider integration |
 | `AI_DAILY_REQUEST_CAP` | No | Future AI cost ceiling |
-| `MONGODB_URI` | No for current runtime | Needed only for DB smoke testing or future DB-backed features |
 
 ## Development
 
@@ -272,14 +255,6 @@ npm run lint
 npm run typecheck
 ```
 
-### Optional Database Smoke Test
-
-```bash
-npm run test:db
-```
-
-This script only checks whether `MONGODB_URI` is reachable. The public dashboard itself does not currently require MongoDB.
-
 ## Available Scripts
 
 | Script | What it does |
@@ -289,19 +264,17 @@ This script only checks whether `MONGODB_URI` is reachable. The public dashboard
 | `npm run start` | Runs the production server |
 | `npm run lint` | Runs ESLint |
 | `npm run typecheck` | Runs `tsc --noEmit` |
-| `npm run test:db` | Verifies MongoDB connectivity |
 
 ## Repository Structure
 
 ```text
 .
 ├── app/
+├── ARCHITECTURE.md
 ├── components/
-├── database/
 ├── hooks/
 ├── lib/
 ├── public/
-├── scripts/
 ├── types/
 ├── APPLICATION_STRUCTURE.md
 ├── application-structure.mermaid

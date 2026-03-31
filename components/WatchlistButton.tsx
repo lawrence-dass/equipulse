@@ -1,16 +1,21 @@
 "use client";
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = 'eq_watchlist';
+const STORAGE_EVENT = 'eq-watchlist-change';
+const EMPTY_WATCHLIST_SNAPSHOT = '[]';
 
-function loadWatchlist(): string[] {
-  if (typeof window === 'undefined') return [];
+function parseWatchlist(snapshot: string): string[] {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? (JSON.parse(saved) as string[]) : [];
+    return JSON.parse(snapshot) as string[];
   } catch {
     return [];
   }
+}
+
+function getWatchlistSnapshot(): string {
+  if (typeof window === 'undefined') return EMPTY_WATCHLIST_SNAPSHOT;
+  return localStorage.getItem(STORAGE_KEY) ?? EMPTY_WATCHLIST_SNAPSHOT;
 }
 
 function saveWatchlist(symbols: string[]) {
@@ -21,6 +26,19 @@ function saveWatchlist(symbols: string[]) {
   }
 }
 
+function subscribeToWatchlist(callback: () => void) {
+  if (typeof window === 'undefined') return () => {};
+
+  const handleChange = () => callback();
+  window.addEventListener('storage', handleChange);
+  window.addEventListener(STORAGE_EVENT, handleChange);
+
+  return () => {
+    window.removeEventListener('storage', handleChange);
+    window.removeEventListener(STORAGE_EVENT, handleChange);
+  };
+}
+
 const WatchlistButton = ({
   symbol,
   company,
@@ -29,22 +47,17 @@ const WatchlistButton = ({
   type = "button",
   onWatchlistChange,
 }: WatchlistButtonProps) => {
-  const [added, setAdded] = useState<boolean>(!!isInWatchlist);
+  const watchlistSnapshot = useSyncExternalStore(
+    subscribeToWatchlist,
+    getWatchlistSnapshot,
+    () => (isInWatchlist ? JSON.stringify([symbol]) : EMPTY_WATCHLIST_SNAPSHOT)
+  );
+  const watchlist = useMemo(() => parseWatchlist(watchlistSnapshot), [watchlistSnapshot]);
+  const added = watchlist.includes(symbol);
   const displayName = company || symbol;
-
-  // Sync initial state from localStorage on mount
-  useEffect(() => {
-    const watchlist = loadWatchlist();
-    setAdded(watchlist.includes(symbol));
-  }, [symbol]);
-
-  const label = useMemo(() => {
-    if (type === "icon") return added ? "" : "";
-    return added ? "Remove from Watchlist" : "Add to Watchlist";
-  }, [added, type]);
+  const label = type === "icon" ? "" : added ? "Remove from Watchlist" : "Add to Watchlist";
 
   const handleClick = useCallback(() => {
-    const watchlist = loadWatchlist();
     let next: string[];
     if (added) {
       next = watchlist.filter((s) => s !== symbol);
@@ -52,9 +65,9 @@ const WatchlistButton = ({
       next = [...watchlist, symbol];
     }
     saveWatchlist(next);
-    setAdded(!added);
+    window.dispatchEvent(new Event(STORAGE_EVENT));
     onWatchlistChange?.(symbol, !added);
-  }, [added, symbol, onWatchlistChange]);
+  }, [added, onWatchlistChange, symbol, watchlist]);
 
   if (type === "icon") {
     return (
