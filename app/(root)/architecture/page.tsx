@@ -1,6 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const MermaidDiagram = dynamic(() => import('@/components/MermaidDiagram'), { ssr: false });
+import MermaidDiagram from '@/components/MermaidDiagramClient';
 
 const SYSTEM_ARCHITECTURE = `
 graph TB
