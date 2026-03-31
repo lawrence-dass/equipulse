@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { CommandDialog, CommandEmpty, CommandInput, CommandList } from "@/components/ui/command"
 import {Button} from "@/components/ui/button";
 import {Loader2,  Star, TrendingUp} from "lucide-react";
@@ -28,8 +28,11 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [])
 
-  const handleSearch = async () => {
-    if(!isSearchMode) return setStocks(initialStocks);
+  const handleSearch = useCallback(async () => {
+    if(!searchTerm.trim()) {
+      setStocks(initialStocks);
+      return;
+    }
 
     setLoading(true)
     try {
@@ -40,13 +43,13 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
     } finally {
       setLoading(false)
     }
-  }
+  }, [initialStocks, searchTerm]);
 
   const debouncedSearch = useDebounce(handleSearch, 300);
 
   useEffect(() => {
     debouncedSearch();
-  }, [searchTerm]);
+  }, [debouncedSearch]);
 
   const handleSelectStock = () => {
     setOpen(false);
@@ -83,7 +86,7 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
                 {isSearchMode ? 'Search results' : 'Popular stocks'}
                 {` `}({displayStocks?.length || 0})
               </div>
-              {displayStocks?.map((stock, i) => (
+              {displayStocks?.map((stock) => (
                   <li key={stock.symbol} className="search-item">
                     <Link
                         href={`/stocks/${stock.symbol}`}

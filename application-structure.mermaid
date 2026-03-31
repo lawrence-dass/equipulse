@@ -1,0 +1,422 @@
+%%{init: {'theme':'dark', 'themeVariables': { 'primaryColor':'#0FEDBE', 'primaryTextColor':'#141414', 'primaryBorderColor':'#0FEDBE', 'lineColor':'#DBDBDB', 'secondaryColor':'#212328', 'tertiaryColor':'#141414'}}}%%
+
+%% Application Architecture Overview
+graph TB
+    subgraph "Client Layer"
+        Browser[Browser]
+        Public[Public Dashboard]
+        Auth[Auth Pages]
+        UserDash[User Dashboard]
+        StockPage[Stock Details Page]
+    end
+
+    subgraph "Next.js App Router"
+        RootLayout["(root) Layout"]
+        AuthLayout["(auth) Layout"]
+        DashboardLayout["Dashboard Layout"]
+    end
+
+    subgraph "Server Layer"
+        ServerActions[Server Actions]
+        API[API Routes]
+        AuthLib[Better Auth]
+    end
+
+    subgraph "Background Jobs"
+        Inngest[Inngest Functions]
+        EmailService[Nodemailer]
+        AI[Gemini AI]
+    end
+
+    subgraph "External Services"
+        TradingView[TradingView Widgets]
+        Finnhub[Finnhub API]
+    end
+
+    subgraph "Database"
+        MongoDB[(MongoDB)]
+        UserPrefs[UserPreferences Collection]
+        Watchlist[Watchlist Collection]
+        Users[Users Collection]
+    end
+
+    Browser --> Public
+    Browser --> Auth
+    Browser --> UserDash
+    Browser --> StockPage
+
+    Public --> RootLayout
+    Auth --> AuthLayout
+    UserDash --> DashboardLayout
+    StockPage --> RootLayout
+
+    RootLayout --> ServerActions
+    AuthLayout --> AuthLib
+    DashboardLayout --> ServerActions
+
+    ServerActions --> MongoDB
+    API --> Inngest
+    AuthLib --> MongoDB
+
+    Inngest --> EmailService
+    Inngest --> AI
+    Inngest --> Finnhub
+
+    ServerActions --> TradingView
+    ServerActions --> Finnhub
+
+    MongoDB --> UserPrefs
+    MongoDB --> Watchlist
+    MongoDB --> Users
+
+    style Browser fill:#0FEDBE,stroke:#0FEDBE,color:#141414
+    style MongoDB fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+    style Inngest fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+
+%% User Authentication Flow
+graph LR
+    Start([User Visits]) --> Check{Authenticated?}
+    Check -->|No| PublicDash[Public Dashboard]
+    Check -->|Yes| UserDash[User Dashboard]
+    
+    PublicDash --> SignUp[Sign Up Page]
+    PublicDash --> SignIn[Sign In Page]
+    
+    SignUp --> SignUpForm[Sign Up Form]
+    SignUpForm --> CollectPrefs[Collect Preferences]
+    CollectPrefs --> CreateUser[Create User Account]
+    CreateUser --> SavePrefs[Save User Preferences]
+    SavePrefs --> TriggerEvent[Trigger Inngest Event]
+    TriggerEvent --> WelcomeEmail[Send Welcome Email]
+    WelcomeEmail --> RedirectDash[Redirect to Dashboard]
+    
+    SignIn --> SignInForm[Sign In Form]
+    SignInForm --> Validate[Validate Credentials]
+    Validate -->|Success| Session[Create Session]
+    Validate -->|Fail| Error[Show Error]
+    Session --> RedirectDash
+    
+    RedirectDash --> LoadDash[Load User Dashboard]
+    LoadDash --> LoadLayout[Load Saved Layout]
+    LoadLayout --> RenderWidgets[Render TradingView Widgets]
+
+    style Start fill:#0FEDBE,stroke:#0FEDBE,color:#141414
+    style CreateUser fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+    style WelcomeEmail fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+
+%% Database Schema
+erDiagram
+    USER ||--o{ USER_PREFERENCES : has
+    USER ||--o{ WATCHLIST : has
+    
+    USER {
+        string id PK
+        string email UK
+        string name
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    USER_PREFERENCES {
+        string userId PK,FK
+        string investmentGoals
+        string riskTolerance
+        string preferredIndustry
+        string country
+        json dashboardLayout
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    WATCHLIST {
+        string _id PK
+        string userId FK
+        string symbol UK
+        string company
+        datetime addedAt
+    }
+
+%% Component Hierarchy
+graph TD
+    App[App Layout] --> RootLayout[Root Layout]
+    App --> AuthLayout[Auth Layout]
+    
+    RootLayout --> HomePage[Home Page]
+    RootLayout --> DashboardPage[Dashboard Page]
+    RootLayout --> StockPage[Stock Details Page]
+    RootLayout --> Header[Header Component]
+    
+    HomePage --> PublicDashboard[PublicDashboard]
+    DashboardPage --> UserDashboard[UserDashboard]
+    StockPage --> TradingViewWidget[TradingViewWidget]
+    StockPage --> WatchlistButton[WatchlistButton]
+    
+    PublicDashboard --> DashboardGrid[DashboardGrid]
+    UserDashboard --> DashboardGrid
+    
+    DashboardGrid --> DashboardWidget[DashboardWidget]
+    DashboardWidget --> TradingViewWidget
+    
+    Header --> UserDropdown[UserDropdown]
+    Header --> NavItems[NavItems]
+    Header --> SearchCommand[SearchCommand]
+    
+    AuthLayout --> SignUpPage[Sign Up Page]
+    AuthLayout --> SignInPage[Sign In Page]
+    
+    SignUpPage --> InputField[InputField]
+    SignUpPage --> SelectField[SelectField]
+    SignUpPage --> CountrySelectField[CountrySelectField]
+    
+    SignInPage --> InputField
+    SignInPage --> FooterLink[FooterLink]
+
+    style App fill:#0FEDBE,stroke:#0FEDBE,color:#141414
+    style PublicDashboard fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+    style UserDashboard fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+
+%% Data Flow - Dashboard Widgets
+sequenceDiagram
+    participant User
+    participant Dashboard
+    participant Hook
+    participant ServerAction
+    participant MongoDB
+    participant TradingView
+    
+    User->>Dashboard: Load Dashboard
+    Dashboard->>Hook: useDashboardLayout(userId)
+    Hook->>ServerAction: getUserDashboardLayout(userId)
+    ServerAction->>MongoDB: Query UserPreferences
+    MongoDB-->>ServerAction: Return Layout Data
+    ServerAction-->>Hook: Return Layout
+    Hook-->>Dashboard: Provide Layout State
+    
+    Dashboard->>TradingView: Render Widgets
+    TradingView-->>Dashboard: Display Charts
+    
+    User->>Dashboard: Drag/Resize Widget
+    Dashboard->>Hook: handleLayoutChange(newLayout)
+    Hook->>ServerAction: saveUserDashboardLayout(userId, layout)
+    ServerAction->>MongoDB: Update UserPreferences
+    MongoDB-->>ServerAction: Confirm Update
+    ServerAction-->>Hook: Success
+    Hook-->>Dashboard: Update State
+
+%% Background Jobs Flow
+graph TB
+    subgraph "Inngest Functions"
+        UserCreated[User Created Event]
+        DailyCron[Daily Cron Job]
+    end
+    
+    subgraph "Welcome Email Flow"
+        UserCreated --> GetProfile[Get User Profile]
+        GetProfile --> BuildPrompt[Build AI Prompt]
+        BuildPrompt --> CallAI[Call Gemini AI]
+        CallAI --> GenerateIntro[Generate Personalized Intro]
+        GenerateIntro --> SendWelcome[Send Welcome Email]
+    end
+    
+    subgraph "Daily News Summary Flow"
+        DailyCron --> GetUsers[Get All Users]
+        GetUsers --> ForEachUser{For Each User}
+        ForEachUser --> GetWatchlist[Get User Watchlist]
+        GetWatchlist --> FetchNews[Fetch News from Finnhub]
+        FetchNews --> CheckNews{News Found?}
+        CheckNews -->|No| FetchGeneral[Fetch General News]
+        CheckNews -->|Yes| SummarizeNews[Summarize with AI]
+        FetchGeneral --> SummarizeNews
+        SummarizeNews --> SendNewsEmail[Send News Email]
+        SendNewsEmail --> ForEachUser
+    end
+    
+    SendWelcome --> Nodemailer[Nodemailer Service]
+    SendNewsEmail --> Nodemailer
+    Nodemailer --> EmailProvider[Email Provider]
+
+    style UserCreated fill:#0FEDBE,stroke:#0FEDBE,color:#141414
+    style DailyCron fill:#0FEDBE,stroke:#0FEDBE,color:#141414
+    style CallAI fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+    style SummarizeNews fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+
+%% Stock Details Page Flow
+graph LR
+    User[User] --> StockPage[Stock Details Page]
+    StockPage --> SymbolInfo[Symbol Info Widget]
+    StockPage --> CandleChart[Candle Chart Widget]
+    StockPage --> BaselineChart[Baseline Chart Widget]
+    StockPage --> TechnicalAnalysis[Technical Analysis Widget]
+    StockPage --> CompanyProfile[Company Profile Widget]
+    StockPage --> CompanyFinancials[Company Financials Widget]
+    StockPage --> WatchlistBtn[Watchlist Button]
+    
+    SymbolInfo --> TradingViewAPI[TradingView API]
+    CandleChart --> TradingViewAPI
+    BaselineChart --> TradingViewAPI
+    TechnicalAnalysis --> TradingViewAPI
+    CompanyProfile --> TradingViewAPI
+    CompanyFinancials --> TradingViewAPI
+    
+    WatchlistBtn --> WatchlistAction[Watchlist Action]
+    WatchlistAction --> MongoDB[(MongoDB)]
+    
+    style StockPage fill:#0FEDBE,stroke:#0FEDBE,color:#141414
+    style TradingViewAPI fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+    style MongoDB fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+
+%% File Structure
+graph TD
+    Root[equipulse/] --> App[app/]
+    Root --> Components[components/]
+    Root --> Lib[lib/]
+    Root --> Database[database/]
+    Root --> Types[types/]
+    Root --> Hooks[hooks/]
+    
+    App --> RootGroup["(root)/"]
+    App --> AuthGroup["(auth)/"]
+    App --> API[api/]
+    App --> Layout[layout.tsx]
+    
+    RootGroup --> Home[page.tsx]
+    RootGroup --> Dashboard[dashboard/]
+    RootGroup --> Stocks[stocks/[symbol]/]
+    RootGroup --> RootLayout[layout.tsx]
+    
+    Dashboard --> DashboardPage[page.tsx]
+    Dashboard --> DashboardLayout[layout.tsx]
+    
+    Stocks --> StockPage[page.tsx]
+    
+    AuthGroup --> SignIn[sign-in/page.tsx]
+    AuthGroup --> SignUp[sign-up/page.tsx]
+    AuthGroup --> AuthLayout[layout.tsx]
+    
+    API --> InngestRoute[inngest/route.ts]
+    
+    Components --> UI[ui/]
+    Components --> Forms[forms/]
+    Components --> PublicDash[PublicDashboard.tsx]
+    Components --> UserDash[UserDashboard.tsx]
+    Components --> Header[Header.tsx]
+    Components --> TradingViewWidget[TradingViewWidget.tsx]
+    Components --> WatchlistButton[WatchlistButton.tsx]
+    
+    Lib --> Actions[actions/]
+    Lib --> HooksLib[hooks/]
+    Lib --> Utils[utils/]
+    Lib --> BetterAuth[better-auth/]
+    Lib --> InngestLib[inngest/]
+    Lib --> Nodemailer[nodemailer/]
+    Lib --> Constants[constants.ts]
+    
+    Actions --> AuthActions[auth.actions.ts]
+    Actions --> UserActions[user.actions.ts]
+    Actions --> WatchlistActions[watchlist.actions.ts]
+    Actions --> UserPrefsActions[userPreferences.actions.ts]
+    Actions --> FinnhubActions[finnhub.actions.ts]
+    
+    Database --> Mongoose[mongoose.ts]
+    Database --> Models[models/]
+    Models --> UserPrefsModel[userPreferences.model.ts]
+    Models --> WatchlistModel[watchlist.model.ts]
+
+    style Root fill:#0FEDBE,stroke:#0FEDBE,color:#141414
+    style App fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+    style Database fill:#212328,stroke:#0FEDBE,color:#DBDBDB
+
+%% Request/Response Flow - Complete Cycle
+sequenceDiagram
+    autonumber
+    participant User as 👤 User Browser
+    participant NextJS as ⚡ Next.js Server
+    participant Router as 🛣️ App Router
+    participant Component as ⚛️ React Component
+    participant ServerAction as 🔧 Server Action
+    participant Auth as 🔐 Better Auth
+    participant DB as 💾 MongoDB
+    participant External as 🌐 External APIs
+    participant Inngest as ⏰ Inngest
+    
+    Note over User,Inngest: Page Load Request Flow
+    
+    User->>NextJS: HTTP GET /dashboard
+    NextJS->>Router: Route to (root)/dashboard/page.tsx
+    Router->>Auth: Check Session (getSession)
+    Auth->>DB: Query User Collection
+    DB-->>Auth: Return User Data
+    Auth-->>Router: Session Status
+    
+    alt User Not Authenticated
+        Router-->>NextJS: Redirect to /sign-in
+        NextJS-->>User: 302 Redirect Response
+    else User Authenticated
+        Router->>Component: Render DashboardPage
+        Component->>Component: Call useUserDashboardLayout(userId)
+        Component->>ServerAction: getUserDashboardLayout(userId)
+        ServerAction->>DB: Query UserPreferences Collection
+        DB-->>ServerAction: Return Layout Data (or null)
+        ServerAction-->>Component: Return Layout
+        Component->>External: Load TradingView Widgets (iframe)
+        External-->>Component: Render Widgets
+        Component-->>Router: Rendered HTML/JSX
+        Router-->>NextJS: Server Component Output
+        NextJS-->>User: HTML Response + Hydration JS
+    end
+    
+    Note over User,Inngest: User Interaction Flow (Example: Sign Up)
+    
+    User->>Component: Submit Sign Up Form
+    Component->>ServerAction: signUpWithEmail(formData)
+    ServerAction->>Auth: auth.api.signUpEmail()
+    Auth->>DB: Create User Document
+    DB-->>Auth: User Created
+    Auth-->>ServerAction: User Response
+    
+    ServerAction->>ServerAction: saveUserPreferences(userId, prefs)
+    ServerAction->>DB: Upsert UserPreferences Document
+    DB-->>ServerAction: Preferences Saved
+    
+    ServerAction->>Inngest: inngest.send('app/user.created')
+    Inngest-->>ServerAction: Event Queued
+    
+    ServerAction-->>Component: Return { success: true }
+    Component->>Router: Redirect to /dashboard
+    Router-->>NextJS: Navigation Response
+    NextJS-->>User: Redirect Response
+    
+    Note over User,Inngest: Background Job Flow (Welcome Email)
+    
+    Inngest->>Inngest: Process 'app/user.created' Event
+    Inngest->>External: Call Gemini AI (Generate Intro)
+    External-->>Inngest: Personalized Content
+    Inngest->>External: Send Email via Nodemailer
+    External-->>Inngest: Email Sent Confirmation
+    Inngest->>Inngest: Job Complete
+    
+    Note over User,Inngest: API Request Flow (Example: Add to Watchlist)
+    
+    User->>Component: Click "Add to Watchlist"
+    Component->>ServerAction: addToWatchlist(symbol, company)
+    ServerAction->>Auth: Get Current Session
+    Auth->>DB: Verify User
+    DB-->>Auth: User Valid
+    Auth-->>ServerAction: User ID
+    
+    ServerAction->>DB: Insert Watchlist Document
+    DB-->>ServerAction: Document Created
+    ServerAction-->>Component: Return { success: true }
+    Component->>Component: Update UI State
+    Component-->>User: Show Success Message
+    
+    Note over User,Inngest: External API Request Flow (Example: Fetch News)
+    
+    User->>Component: Load Dashboard (with news widget)
+    Component->>ServerAction: getNews(symbols)
+    ServerAction->>External: GET https://finnhub.io/api/v1/news
+    External-->>ServerAction: News Articles JSON
+    ServerAction->>ServerAction: Validate & Format Articles
+    ServerAction-->>Component: Return Formatted News
+    Component->>Component: Render News Widget
+    Component-->>User: Display News Content

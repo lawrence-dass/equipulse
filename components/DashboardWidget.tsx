@@ -25,4 +25,3 @@ function DashboardWidget({ widget }: DashboardWidgetProps) {
 }
 
 export default memo(DashboardWidget);
-

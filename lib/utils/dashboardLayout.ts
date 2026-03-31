@@ -36,16 +36,16 @@ export function saveLayoutsToStorage(layouts: StoredLayouts): void {
 /**
  * Debounce function for saving layouts
  */
-export function debounce<T extends (...args: unknown[]) => void>(
-    func: T,
+export function debounce<Args extends unknown[]>(
+    func: (...args: Args) => void | Promise<void>,
     wait: number
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
     let timeout: NodeJS.Timeout | null = null;
 
-    return function executedFunction(...args: Parameters<T>) {
+    return function executedFunction(...args: Args) {
         const later = () => {
             timeout = null;
-            func(...args);
+            void func(...args);
         };
 
         if (timeout) {
@@ -54,4 +54,3 @@ export function debounce<T extends (...args: unknown[]) => void>(
         timeout = setTimeout(later, wait);
     };
 }
-
