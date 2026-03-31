@@ -98,8 +98,8 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
                         <div className="search-item-name">
                           {stock.name}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {stock.symbol} | {stock.exchange } | {stock.type}
+                        <div className="text-xs text-gray-500 tracking-wide">
+                          <span className="text-yellow-500">{stock.symbol}</span> · {stock.exchange} · {stock.type}
                         </div>
                       </div>
                     <Star className="h-4 w-4 text-gray-500" />
