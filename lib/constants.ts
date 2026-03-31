@@ -1,39 +1,8 @@
+import { LayoutItem } from 'react-grid-layout';
+
 export const NAV_ITEMS = [
     { href: '/', label: 'Dashboard' },
-    { href: '/search', label: 'Search' },
-    // { href: '/watchlist', label: 'Watchlist' },
-];
-
-// Sign-up form select options
-export const INVESTMENT_GOALS = [
-    { value: 'Growth', label: 'Growth' },
-    { value: 'Income', label: 'Income' },
-    { value: 'Balanced', label: 'Balanced' },
-    { value: 'Conservative', label: 'Conservative' },
-];
-
-export const RISK_TOLERANCE_OPTIONS = [
-    { value: 'Low', label: 'Low' },
-    { value: 'Medium', label: 'Medium' },
-    { value: 'High', label: 'High' },
-];
-
-export const PREFERRED_INDUSTRIES = [
-    { value: 'Technology', label: 'Technology' },
-    { value: 'Healthcare', label: 'Healthcare' },
-    { value: 'Finance', label: 'Finance' },
-    { value: 'Energy', label: 'Energy' },
-    { value: 'Consumer Goods', label: 'Consumer Goods' },
-];
-
-export const ALERT_TYPE_OPTIONS = [
-    { value: 'upper', label: 'Upper' },
-    { value: 'lower', label: 'Lower' },
-];
-
-export const CONDITION_OPTIONS = [
-    { value: 'greater', label: 'Greater than (>)' },
-    { value: 'less', label: 'Less than (<)' },
+    { href: '/architecture', label: 'Architecture' },
 ];
 
 // TradingView Charts
@@ -324,22 +293,6 @@ export const POPULAR_STOCK_SYMBOLS = [
     'SE',
 ];
 
-export const NO_MARKET_NEWS =
-    '<p class="mobile-text" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#4b5563;">No market news available today. Please check back tomorrow.</p>';
-
-import { LayoutItem, ResponsiveLayouts } from 'react-grid-layout';
-
-export const WATCHLIST_TABLE_HEADER = [
-    'Company',
-    'Symbol',
-    'Price',
-    'Change',
-    'Market Cap',
-    'P/E Ratio',
-    'Alert',
-    'Action',
-];
-
 // Dashboard Widget Registry
 
 export type WidgetType = 'market-overview' | 'heatmap' | 'market-data' | 'top-stories';
@@ -359,9 +312,6 @@ export interface WidgetConfig {
         maxH?: number;
     };
 }
-
-export type WidgetLayout = LayoutItem;
-export type Layouts = ResponsiveLayouts;
 
 // Default widget configurations
 export const DASHBOARD_WIDGETS: WidgetConfig[] = [
