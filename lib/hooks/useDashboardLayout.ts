@@ -1,55 +1,46 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ResponsiveLayouts, Layout } from 'react-grid-layout';
 import { DEFAULT_LAYOUTS } from '@/lib/constants';
-import { loadLayoutsFromStorage, saveLayoutsToStorage, debounce } from '@/lib/utils/dashboardLayout';
+
+const STORAGE_KEY = 'eq_dashboard_layout';
+
+function loadLayout(): ResponsiveLayouts {
+    if (typeof window === 'undefined') return DEFAULT_LAYOUTS;
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return JSON.parse(saved) as ResponsiveLayouts;
+    } catch {
+        // ignore
+    }
+    return DEFAULT_LAYOUTS;
+}
 
 export function useDashboardLayout() {
-    // Lazy initialization to avoid synchronous setState in effect
-    const [layouts, setLayouts] = useState<ResponsiveLayouts>(() => {
-        if (typeof window === 'undefined') {
-            return { lg: [], md: [], sm: [], xs: [] };
-        }
-        const stored = loadLayoutsFromStorage();
-        return stored || DEFAULT_LAYOUTS;
-    });
+    const [layouts, setLayouts] = useState<ResponsiveLayouts>(DEFAULT_LAYOUTS);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const [isLoaded, setIsLoaded] = useState(() => typeof window !== 'undefined');
-
-    // Debounced save function
-    const debouncedSave = useMemo(
-        () =>
-            debounce((layoutsToSave: ResponsiveLayouts) => {
-                saveLayoutsToStorage(layoutsToSave);
-            }, 300),
-        []
-    );
-
-    // Sync with localStorage on mount (client-side only)
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-        
-        const stored = loadLayoutsFromStorage();
-        if (stored) {
-            setLayouts(stored);
-        }
+        setLayouts(loadLayout());
         setIsLoaded(true);
     }, []);
 
-    // Handle layout change - ResponsiveGridLayout calls this with (currentLayout, allLayouts)
     const handleLayoutChange = useCallback(
-        (currentLayout: Layout, allLayouts: ResponsiveLayouts) => {
+        (_currentLayout: Layout, allLayouts: ResponsiveLayouts) => {
             setLayouts(allLayouts);
-            debouncedSave(allLayouts);
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            debounceRef.current = setTimeout(() => {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(allLayouts));
+                } catch {
+                    // ignore quota errors
+                }
+            }, 500);
         },
-        [debouncedSave]
+        []
     );
 
-    return {
-        layouts,
-        isLoaded,
-        handleLayoutChange,
-    };
+    return { layouts, isLoaded, handleLayoutChange };
 }
-

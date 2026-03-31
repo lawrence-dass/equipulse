@@ -1,9 +1,9 @@
-import DashboardGrid from "@/components/DashboardGrid"
+import PublicDashboard from "@/components/PublicDashboard"
 
 const Home = () => {
   return (
-    <div className="flex min-h-screen home-wrapper">
-      <DashboardGrid />
+    <div className="flex home-wrapper">
+      <PublicDashboard />
     </div>
   )
 }
