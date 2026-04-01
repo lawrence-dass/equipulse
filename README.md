@@ -12,6 +12,16 @@ The current application is intentionally simple:
 
 The main architecture document lives in [ARCHITECTURE.md](/Users/lawrence/Desktop/projects/portfolio_projects/equipulse/ARCHITECTURE.md).
 
+## Screenshots
+
+### Dashboard
+
+![Equipulse Dashboard](public/screenshots/dashboard.png)
+
+### Stock Detail
+
+![Equipulse Stock Detail](public/screenshots/stock.png)
+
 ## Current State
 
 As of `2026-03-31`, the app is operating as a portfolio-style public market dashboard rather than a full authenticated product.
@@ -50,10 +60,10 @@ flowchart TD
 
     subgraph NextApp[Next.js App Router]
         RootLayout[app/layout.tsx]
-        PublicLayout[app/(root)/layout.tsx]
+        PublicLayout["app/(root)/layout.tsx"]
         Header[components/Header.tsx]
-        HomePage[app/(root)/page.tsx]
-        StockPage[app/(root)/stocks/[symbol]/page.tsx]
+        HomePage["app/(root)/page.tsx"]
+        StockPage["app/(root)/stocks/[symbol]/page.tsx"]
         SearchCommand[components/SearchCommand.tsx]
         PublicDashboard[components/PublicDashboard.tsx]
         DashboardWidget[components/DashboardWidget.tsx]
